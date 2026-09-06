@@ -1,0 +1,10 @@
+<script setup lang="ts">
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useProjectStore } from '../stores/projectStore'
+import type { DeviceType } from '../types'
+const open = defineModel<boolean>({ required: true }); const store = useProjectStore(); const router = useRouter(); const name = ref(''); const description = ref(''); const deviceType = ref<DeviceType>('iphone')
+const devices: { value: DeviceType; label: string; hint: string }[] = [{ value: 'iphone', label: 'iPhone', hint: '390 × 844' }, { value: 'android', label: 'Android', hint: '412 × 915' }, { value: 'desktop', label: 'Desktop', hint: '1280 × 800' }, { value: 'tablet', label: 'Tablet', hint: '768 × 1024' }, { value: 'custom', label: 'Custom', hint: 'Your format' }]
+async function submit() { if (!name.value.trim()) return; const project = await store.createProject({ name: name.value.trim(), description: description.value.trim(), deviceType: deviceType.value }); await store.createScreen(project.id, 'Untitled screen', deviceType.value); open.value = false; await router.push(`/project/${project.id}`) }
+</script>
+<template><Teleport to="body"><Transition name="fade"><div v-if="open" class="modal-backdrop" @mousedown.self="open=false"><form class="modal" @submit.prevent="submit"><div><p class="eyebrow">NEW PROJECT</p><h2>Start with an idea.</h2><p class="muted">Create a space for your next interface.</p></div><label>Project name *<input v-model="name" autofocus placeholder="e.g. Acme mobile app"></label><label>Description<input v-model="description" placeholder="What are you designing?"></label><div><label>Choose a device</label><div class="device-options"><button v-for="device in devices" :key="device.value" type="button" :class="{chosen: deviceType === device.value}" @click="deviceType=device.value"><b>{{ device.label }}</b><small>{{ device.hint }}</small></button></div></div><div class="modal-actions"><button type="button" class="button ghost" @click="open=false">Cancel</button><button class="button primary">Create project</button></div></form></div></Transition></Teleport></template>
